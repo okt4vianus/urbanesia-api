@@ -20,12 +20,14 @@ app.get("/", (context) => {
   });
 });
 
-app.get("/cities", (context) => context.json(cities));
+app.get("/cities", (c) => {
+  return c.json(cities);
+});
 
-app.get("/cities/:id", (context) => {
-  const id = parseInt(context.req.param("id")); // get id  from parameter url
+app.get("/cities/:id", (c) => {
+  const id = parseInt(c.req.param("id"));
   const city = cities.find((city) => city.id === id);
-  return context.json(city);
+  return c.json(city);
 });
 
 export default app;

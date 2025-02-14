@@ -1,3 +1,9 @@
+# Urbanesia API
+
+Cities information API.
+
+## Development
+
 To install dependencies:
 
 ```sh
