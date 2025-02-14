@@ -1,8 +1,13 @@
-type City = {
+export type City = {
   id: number; // 1, 2, 3
   slug: string; // kota-manado
   name: string; // Kota Manado
   areaSize: number; // in km2 = 162
+};
+
+export type CreateCity = {
+  name: string;
+  areaSize: number;
 };
 
 export const cities: City[] = [
@@ -31,7 +36,7 @@ export const cities: City[] = [
     areaSize: 329.72,
   },
   {
-    id: 5,
+    id: 10,
     slug: "kota-kotamobagu",
     name: "Kota Kotamobagu",
     areaSize: 108.89,
