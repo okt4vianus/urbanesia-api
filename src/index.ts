@@ -1,28 +1,29 @@
 import { Hono } from "hono";
 
 import { cities, type CreateCity, type City } from "./data/cities";
-import { convertToSlug } from "./lib/slug";
+import { createSlug } from "./lib/slug";
+import { createNewId } from "./lib/id";
 
 const app = new Hono();
 
+// GET /
 app.get("/", (c) => {
   return c.json({
     message: "Urbanesia API",
     description: "Welcome to Urbanesia API. Here are the available endpoints:",
     endpoints: [
       {
+        method: "GET",
         path: "/cities",
         description: "Get a list of all cities",
       },
       {
-        path: "cities/id/:id",
-        description: "Get details of specific city by ID.",
-      },
-      {
-        path: "/cities/slug/:slug",
+        method: "GET",
+        path: "/cities/:slug",
         description: "Get details of specific city by slug",
       },
       {
+        method: "GET",
         path: "/cities/search?=string",
         description: "Search cities by query",
       },
@@ -30,96 +31,72 @@ app.get("/", (c) => {
   });
 });
 
-app.get("/cities/search", async (c) => {
-  console.log("Raw query:", c.req.query()); // Debug semua query parameters
+// GET /cities
+app.get("/cities", (c) => {
+  // TODO: Retrieve data from database
+  return c.json(cities);
+});
 
-  const query = c.req.query("q");
+// GET /cities/:slug
+app.get("/cities/:slug", (c) => {
+  const slug = c.req.param("slug");
 
-  if (!query) {
-    return c.json(
-      {
-        error: "Search City not found",
-      },
-      404
-    );
+  const city = cities.find((city) => city.slug === slug);
+
+  if (!city) return c.json({ error: "City not found" }, 404);
+
+  return c.json(city);
+});
+
+// POST /cities
+app.post("/cities", async (c) => {
+  const body: CreateCity = await c.req.json();
+
+  if (!body.name || !body.areaSize) {
+    return c.json({ message: "Name and areaSize are required" }, 400);
   }
+
+  const newCity: City = {
+    id: createNewId(cities),
+    slug: createSlug(body.name),
+    name: body.name,
+    areaSize: body.areaSize,
+    description: body.description || null,
+  };
+
+  cities.push(newCity);
+
+  return c.json(newCity, 201);
+});
+
+// ---
+
+// GET /search?q=bunga
+app.get("/search", (c) => {
+  const q = c.req.query("q");
+
+  if (!q) return c.json({ error: "Query is required" }, 404);
 
   const results = cities.filter(
     (city) =>
-      city.slug.toLowerCase().includes(query.toLowerCase()) ||
-      city.name.toLocaleLowerCase().includes(query.toLowerCase()) ||
-      city.description?.toLowerCase().includes(query.toLowerCase())
+      city.slug.toLowerCase().includes(q.toLowerCase()) ||
+      city.name.toLocaleLowerCase().includes(q.toLowerCase()) ||
+      city.description?.toLowerCase().includes(q.toLowerCase())
   );
 
   return c.json(results, 200);
 });
 
-app.get("/cities", (c) => {
-  // next will retrieve data from database
+// ---
 
-  return c.json(cities);
-});
-
-app.get("/cities/id/:id", (c) => {
+app.get("/admin/cities/:id", (c) => {
   const id = parseInt(c.req.param("id"));
+
   const city = cities.find((city) => city.id === id);
-  if (!city) {
-    return c.json(
-      {
-        error: "City not found",
-      },
-      404
-    );
-  }
+
+  if (!city) return c.json({ message: `City by id ${id} not found` }, 404);
+
   return c.json(city);
-});
-
-app.get("/cities/:slug", (c) => {
-  const slug = c.req.param("slug");
-  const city = cities.find((city) => city.slug === slug);
-  if (!city) {
-    return c.json(
-      {
-        error: "City not found",
-      },
-      404
-    );
-  }
-  return c.json(city);
-});
-
-app.post("/cities", async (c) => {
-  const body: CreateCity = await c.req.json();
-
-  if (!body.name || !body.areaSize) {
-    return c.json({ error: "Name and areaSize are required" }, 400);
-  }
-
-  const newId = cities.length > 0 ? cities[cities.length - 1].id + 1 : 1;
-  const newSlug = convertToSlug(body.name);
-
-  const newCity: City = {
-    id: newId,
-    slug: newSlug,
-    ...body, //name, area-size, description
-  };
-
-  // const body = await c.req.json();
-  // const newCity = {
-  //   ...body,
-  // };
-
-  cities.push(newCity);
-  console.log(newCity);
-  return c.json(newCity, 201);
-
-  // console.log("Create City");
-  // return c.json(
-  //   {
-  //     message: "City Created",
-  //   },
-  //   201
-  // );
 });
 
 export default app;

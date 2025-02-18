@@ -3,7 +3,7 @@ export type City = {
   slug: string; // kota-manado
   name: string; // Kota Manado
   areaSize: number; // in km2 = 162.29
-  description?: string; // ? optional field
+  description?: string | null; // ? optional field
 };
 
 export type CreateCity = {
