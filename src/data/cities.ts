@@ -7,9 +7,16 @@ export type City = {
 };
 
 export type CreateCity = {
-  name: string; // Kota Manado
-  areaSize: number; // in km2 = 162.29
-  description?: string; // ? optional field
+  name: string;
+  areaSize: number;
+  description?: string;
+};
+
+export type UpdateCity = {
+  slug?: string;
+  name: string;
+  areaSize: number;
+  description?: string;
 };
 
 // single data

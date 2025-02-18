@@ -2,8 +2,9 @@ import { Hono } from "hono";
 
 import {
   cities as initialCities,
-  type CreateCity,
   type City,
+  type CreateCity,
+  type UpdateCity,
 } from "./data/cities";
 import { createSlug } from "./lib/slug";
 import { createNewId } from "./lib/id";
@@ -49,7 +50,7 @@ app.get("/cities/:slug", (c) => {
 
   const city = cities.find((city) => city.slug === slug);
 
-  if (!city) return c.json({ error: "City not found" }, 404);
+  if (!city) return c.json({ error: `City by slug "${slug}" not found` }, 404);
 
   return c.json(city);
 });
@@ -89,7 +90,34 @@ app.delete("/cities/:id", (c) => {
 
   cities = updatedCities;
 
-  return c.json({ message: `City by id ${id} has been deleted` });
+  return c.json({ message: `City by id "${id}" has been deleted` });
+});
+
+// PATCH /cities/:id
+app.patch("/cities/:id", async (c) => {
+  const id = parseInt(c.req.param("id"));
+
+  const city = cities.find((city) => city.id === id);
+
+  if (!city) return c.json({ error: `City by id '${id}' not found` }, 404);
+
+  const body: UpdateCity = await c.req.json();
+
+  const updatedCities = cities.map((city) => {
+    if (city.id === id) {
+      return {
+        ...city,
+        ...body,
+        slug: createSlug(body.name),
+      };
+    } else {
+      return city;
+    }
+  });
+
+  cities = updatedCities;
+
+  return c.json({ message: `City by id ${id} has been updated` });
 });
 
 // GET /search?q=bunga

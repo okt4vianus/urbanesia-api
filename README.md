@@ -8,15 +8,15 @@ Cities information API
 
 Cities:
 
-| Endpoints     | HTTP Method | Description                  | Status |
-| ------------- | ----------- | ---------------------------- | ------ |
-| /cities       | GET         | Get all cities               | Done   |
-| /cities/:slug | GET         | Get city by slug             | Done   |
-| /cities       | POST        | Create city                  | Done   |
-| /cities/:id   | DELETE      | Delete city by id            |        |
-| /cities       | DELETE      | Delete all cities            |        |
-| /cities/:id   | PATCH       | Update city by id            |        |
-| /cities/:id   | PUT         | Update city by id, or create |        |
+| Endpoints     | HTTP Method        | Description                  | Status |
+| ------------- | ------------------ | ---------------------------- | ------ |
+| /cities       | GET                | Get all cities               | Done   |
+| /cities/:slug | GET                | Get city by slug             | Done   |
+| /cities       | POST               | Create city                  | Done   |
+| /cities/:id   | DELETE             | Delete city by id            | Done   |
+| /cities       | DELETE             | Delete all cities            | Done   |
+| /cities/:id   | PATCH              | Update city by id            |        |
+| /cities/:id   | PUT (PATCH & POST) | Update city by id, or create |        |
 
 Other features:
 
