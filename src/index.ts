@@ -1,8 +1,14 @@
 import { Hono } from "hono";
 
-import { cities, type CreateCity, type City } from "./data/cities";
+import {
+  cities as initialCities,
+  type CreateCity,
+  type City,
+} from "./data/cities";
 import { createSlug } from "./lib/slug";
 import { createNewId } from "./lib/id";
+
+let cities = initialCities;
 
 const app = new Hono();
 
@@ -69,7 +75,22 @@ app.post("/cities", async (c) => {
   return c.json(newCity, 201);
 });
 
-// ---
+// DELETE /cities
+app.delete("/cities", (c) => {
+  cities = [];
+  return c.json({ message: `All cities has been deleted` });
+});
+
+// DELETE /cities/:id
+app.delete("/cities/:id", (c) => {
+  const id = parseInt(c.req.param("id"));
+
+  const updatedCities = cities.filter((city) => city.id !== id);
+
+  cities = updatedCities;
+
+  return c.json({ message: `City by id ${id} has been deleted` });
+});
 
 // GET /search?q=bunga
 app.get("/search", (c) => {
