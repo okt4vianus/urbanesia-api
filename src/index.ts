@@ -1,125 +1,237 @@
 import { Hono } from "hono";
 
-import { cities, type CreateCity, type City } from "./data/cities";
-import { convertToSlug } from "./lib/slug";
+import {
+  cities as initialCities,
+  type CreateCity,
+  type City,
+  type UpdateCity,
+} from "./data/cities";
+import { createNewSlug } from "./lib/slug";
+import { createNewId } from "./lib/id";
 
+let cities = initialCities;
 const app = new Hono();
-
+// Cities:
+// GET /
 app.get("/", (c) => {
   return c.json({
     message: "Urbanesia API",
     description: "Welcome to Urbanesia API. Here are the available endpoints:",
     endpoints: [
       {
+        method: "GET",
         path: "/cities",
         description: "Get a list of all cities",
       },
       {
-        path: "cities/id/:id",
-        description: "Get details of specific city by ID.",
-      },
-      {
-        path: "/cities/slug/:slug",
+        method: "GET",
+        path: "/cities/:slug",
         description: "Get details of specific city by slug",
       },
       {
-        path: "/cities/search?=string",
+        method: "GET",
+        path: "/search?=string",
         description: "Search cities by query",
+      },
+      {
+        method: "GET",
+        path: "/admin/cities/:id",
+        description: "Get details of specific city by id",
+      },
+      {
+        method: "POST",
+        path: "/cities",
+        description: "Create a city",
+      },
+      {
+        method: "DELETE",
+        path: "/cities/:id",
+        description: "Delete a city by id",
+      },
+      {
+        method: "DELETE",
+        path: "/cities",
+        description: "Delete all cities",
+      },
+      {
+        method: "PATCH",
+        path: "/cities/:id",
+        description: "Update a city by id",
+      },
+      {
+        method: "PUT",
+        path: "/cities:id",
+        description: "Update a city by id, or create city",
       },
     ],
   });
 });
 
-app.get("/cities/search", async (c) => {
-  console.log("Raw query:", c.req.query()); // Debug semua query parameters
-
-  const query = c.req.query("q");
-
-  if (!query) {
-    return c.json(
-      {
-        error: "Search City not found",
-      },
-      404
-    );
-  }
-
-  const results = cities.filter(
-    (city) =>
-      city.slug.toLowerCase().includes(query.toLowerCase()) ||
-      city.name.toLocaleLowerCase().includes(query.toLowerCase()) ||
-      city.description?.toLowerCase().includes(query.toLowerCase())
-  );
-
-  return c.json(results, 200);
-});
-
+// GET /cities
 app.get("/cities", (c) => {
-  // next will retrieve data from database
+  // TO DO: Retrieve data from database
 
   return c.json(cities);
 });
 
-app.get("/cities/id/:id", (c) => {
-  const id = parseInt(c.req.param("id"));
-  const city = cities.find((city) => city.id === id);
-  if (!city) {
-    return c.json(
-      {
-        error: "City not found",
-      },
-      404
-    );
-  }
-  return c.json(city);
-});
-
+// GET /cities/:slug
 app.get("/cities/:slug", (c) => {
   const slug = c.req.param("slug");
+
   const city = cities.find((city) => city.slug === slug);
-  if (!city) {
-    return c.json(
-      {
-        error: "City not found",
-      },
-      404
-    );
-  }
+
+  if (!city) return c.json({ message: `City by slug ${slug} not found` }, 400);
   return c.json(city);
 });
 
+// POST /cities
 app.post("/cities", async (c) => {
   const body: CreateCity = await c.req.json();
 
-  if (!body.name || !body.areaSize) {
-    return c.json({ error: "Name and areaSize are required" }, 400);
-  }
-
-  const newId = cities.length > 0 ? cities[cities.length - 1].id + 1 : 1;
-  const newSlug = convertToSlug(body.name);
+  if (!body.name || !body.areaSize)
+    return c.json({ message: "Name and areaSize are required" }, 400);
 
   const newCity: City = {
-    id: newId,
-    slug: newSlug,
-    ...body, //name, area-size, description
+    id: createNewId(cities),
+    slug: createNewSlug(body.name),
+    name: body.name,
+    areaSize: body.areaSize,
+    //...body, //name, area-size, description,
+    description: body.description || null,
   };
 
-  // const body = await c.req.json();
-  // const newCity = {
-  //   ...body,
-  // };
-
   cities.push(newCity);
-  console.log(newCity);
   return c.json(newCity, 201);
+});
 
-  // console.log("Create City");
-  // return c.json(
-  //   {
-  //     message: "City Created",
-  //   },
-  //   201
-  // );
+// DELETE /cities
+app.delete("/cities", (c) => {
+  const deleteCities = cities;
+  cities = [];
+  // await database.city.deleteMany(); -- delete from database
+  return c.json({
+    message: "All cities has been deleted",
+    value: deleteCities,
+  });
+});
+
+// DELETE /cities/:id
+app.delete("/cities/:id", (c) => {
+  const id = parseInt(c.req.param("id"));
+  const updateCities = cities.filter((city) => city.id !== id);
+  const city = cities.find((city) => city.id === id);
+
+  cities = updateCities;
+  return c.json({
+    message: `city by id ${id} has been deleted`,
+    value: city,
+  });
+  // return c.json({ message: `city by id ${id} has been deleted ` });
+});
+
+// PATCH /cities/:id
+app.patch("/cities/:id", async (c) => {
+  const id = parseInt(c.req.param("id"));
+
+  const city = cities.find((city) => city.id === id);
+
+  if (!city) return c.json({ message: `City by id '${id}' not found` }, 400);
+
+  const body: UpdateCity = await c.req.json();
+
+  const updatedCities = cities.map((city) => {
+    if (city.id === id) {
+      return {
+        ...city,
+        ...body,
+        slug: body.slug || createNewSlug(body.name),
+      };
+    } else {
+      return city;
+    }
+  });
+
+  cities = updatedCities;
+
+  return c.json({ message: `City by id ${id} has been updated` }, 201);
+});
+
+// PUT /cities/:id
+app.put("/cities/:id", async (c) => {
+  const id = parseInt(c.req.param("id"));
+
+  const body: UpdateCity = await c.req.json();
+
+  const city = cities.find((city) => city.id === id);
+
+  // if not found create new data
+  if (!city) {
+    const newCity: City = {
+      id: createNewId(cities),
+      slug: createNewSlug(body.name),
+      name: body.name,
+      areaSize: body.areaSize,
+      description: body.description || null,
+    };
+
+    cities.push(newCity);
+
+    return c.json(
+      {
+        message: `City with id ${id} has been created`,
+        value: newCity,
+      },
+      201
+    );
+  }
+
+  // if found update the data
+
+  const updatedCities = cities.map((city) => {
+    if (city.id === id) {
+      return {
+        ...city,
+        ...body,
+        slug: body.slug || createNewSlug(body.name),
+      };
+    } else {
+      return city;
+    }
+  });
+
+  cities = updatedCities;
+  return c.json({ message: `City by id ${id} has been updated` }, 201);
+});
+
+// Other features:
+// GET /search?q=bunga
+app.get("/search", (c) => {
+  console.log("Raw query:", c.req.query());
+
+  const q = c.req.query("q");
+
+  if (!q) return c.json({ message: "Query is required" }, 400);
+
+  const results = cities.filter(
+    (city) =>
+      city.slug.toLowerCase().includes(q.toLowerCase()) ||
+      city.name.toLocaleLowerCase().includes(q.toLowerCase()) ||
+      city.description?.toLowerCase().includes(q.toLowerCase())
+  );
+
+  return c.json(results, 201);
+});
+
+// ---
+// GET /admin/cities/:id
+app.get("/admin/cities/:id", (c) => {
+  const id = parseInt(c.req.param("id"));
+
+  const city = cities.find((city) => city.id === id);
+
+  if (!city) return c.json({ message: `City by id ${id} not found` }, 400);
+
+  return c.json(city);
 });
 
 export default app;
