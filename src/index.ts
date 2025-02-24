@@ -10,8 +10,9 @@ import { createNewSlug } from "./lib/slug";
 import { createNewId } from "./lib/id";
 
 let cities = initialCities;
+
 const app = new Hono();
-// Cities:
+
 // GET /
 app.get("/", (c) => {
   return c.json({
@@ -79,8 +80,8 @@ app.get("/cities/:slug", (c) => {
   const slug = c.req.param("slug");
 
   const city = cities.find((city) => city.slug === slug);
-
   if (!city) return c.json({ message: `City by slug ${slug} not found` }, 400);
+
   return c.json(city);
 });
 
@@ -88,8 +89,9 @@ app.get("/cities/:slug", (c) => {
 app.post("/cities", async (c) => {
   const body: CreateCity = await c.req.json();
 
-  if (!body.name || !body.areaSize)
+  if (!body.name || !body.areaSize) {
     return c.json({ message: "Name and areaSize are required" }, 400);
+  }
 
   const newCity: City = {
     id: createNewId(cities),
@@ -101,32 +103,32 @@ app.post("/cities", async (c) => {
   };
 
   cities.push(newCity);
+
   return c.json(newCity, 201);
 });
 
 // DELETE /cities
 app.delete("/cities", (c) => {
-  const deleteCities = cities;
   cities = [];
-  // await database.city.deleteMany(); -- delete from database
-  return c.json({
-    message: "All cities has been deleted",
-    value: deleteCities,
-  });
+
+  return c.json({ message: "All cities has been deleted" });
 });
 
 // DELETE /cities/:id
 app.delete("/cities/:id", (c) => {
   const id = parseInt(c.req.param("id"));
-  const updateCities = cities.filter((city) => city.id !== id);
+
   const city = cities.find((city) => city.id === id);
+  if (!city) return c.json({ message: `City by id ${id} not found` }, 404);
+
+  const updateCities = cities.filter((city) => city.id !== id);
 
   cities = updateCities;
+
   return c.json({
-    message: `city by id ${id} has been deleted`,
+    message: `City by id ${id} has been deleted`,
     value: city,
   });
-  // return c.json({ message: `city by id ${id} has been deleted ` });
 });
 
 // PATCH /cities/:id
@@ -134,8 +136,7 @@ app.patch("/cities/:id", async (c) => {
   const id = parseInt(c.req.param("id"));
 
   const city = cities.find((city) => city.id === id);
-
-  if (!city) return c.json({ message: `City by id '${id}' not found` }, 400);
+  if (!city) return c.json({ message: `City by id '${id}' not found` }, 404);
 
   const body: UpdateCity = await c.req.json();
 
@@ -153,7 +154,7 @@ app.patch("/cities/:id", async (c) => {
 
   cities = updatedCities;
 
-  return c.json({ message: `City by id ${id} has been updated` }, 201);
+  return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
 
 // PUT /cities/:id
@@ -164,7 +165,6 @@ app.put("/cities/:id", async (c) => {
 
   const city = cities.find((city) => city.id === id);
 
-  // if not found create new data
   if (!city) {
     const newCity: City = {
       id: createNewId(cities),
@@ -176,16 +176,8 @@ app.put("/cities/:id", async (c) => {
 
     cities.push(newCity);
 
-    return c.json(
-      {
-        message: `City with id ${id} has been created`,
-        value: newCity,
-      },
-      201
-    );
+    return c.json(newCity, 201);
   }
-
-  // if found update the data
 
   const updatedCities = cities.map((city) => {
     if (city.id === id) {
@@ -200,14 +192,12 @@ app.put("/cities/:id", async (c) => {
   });
 
   cities = updatedCities;
-  return c.json({ message: `City by id ${id} has been updated` }, 201);
+
+  return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
 
-// Other features:
 // GET /search?q=bunga
 app.get("/search", (c) => {
-  console.log("Raw query:", c.req.query());
-
   const q = c.req.query("q");
 
   if (!q) return c.json({ message: "Query is required" }, 400);
@@ -219,10 +209,9 @@ app.get("/search", (c) => {
       city.description?.toLowerCase().includes(q.toLowerCase())
   );
 
-  return c.json(results, 201);
+  return c.json(results, 200);
 });
 
-// ---
 // GET /admin/cities/:id
 app.get("/admin/cities/:id", (c) => {
   const id = parseInt(c.req.param("id"));
