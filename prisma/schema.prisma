@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model City {
+  id Int @id @default(autoincrement())
+
+  slug String @unique // kota-manado
+  name String @unique // Kota Manado
+
+  areaSize Float // in km2 = 162.29
+
+  description String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
