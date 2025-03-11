@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
-    "start": "bun run src/index.ts"
+    "start": "bun run src/index.ts",
+    "docker:up": "docker compose up -d"
   },
   "dependencies": {
     "hono": "^4.6.20",
