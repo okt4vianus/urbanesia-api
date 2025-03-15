@@ -14,11 +14,13 @@ datasource db {
 }
 
 model City {
-  id          Int      @id @default(autoincrement()) // 1, 2, 3
-  slug        String   @unique // kota-manado
-  name        String   @unique // Kota Manado
+  id String @id @default(ulid())
+
+  slug        String  @unique // kota-manado
+  name        String  @unique // Kota Manado
   areaSize    Float // in km2 = 162.29
-  description String?  @db.Text // ? optional field
-  createdAt   DateTime @default(now())
-  updateAt    DateTime @updatedAt
+  description String? @db.Text // ? optional field
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
