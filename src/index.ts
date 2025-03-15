@@ -9,7 +9,7 @@ import {
 import { createNewSlug } from "./lib/slug";
 import { createNewId } from "./lib/id";
 
-let cities = initialCities;
+let citiesJSON = initialCities;
 
 const app = new Hono();
 
@@ -72,14 +72,14 @@ app.get("/", (c) => {
 app.get("/cities", (c) => {
   // TO DO: Retrieve data from database
 
-  return c.json(cities);
+  return c.json(citiesJSON);
 });
 
 // GET /cities/:slug
 app.get("/cities/:slug", (c) => {
   const slug = c.req.param("slug");
 
-  const city = cities.find((city) => city.slug === slug);
+  const city = citiesJSON.find((city) => city.slug === slug);
   if (!city) return c.json({ message: `City by slug ${slug} not found` }, 400);
 
   return c.json(city);
@@ -94,7 +94,7 @@ app.post("/cities", async (c) => {
   }
 
   const newCity: City = {
-    id: createNewId(cities),
+    id: createNewId(citiesJSON),
     slug: createNewSlug(body.name),
     name: body.name,
     areaSize: body.areaSize,
@@ -102,14 +102,14 @@ app.post("/cities", async (c) => {
     description: body.description || null,
   };
 
-  cities.push(newCity);
+  citiesJSON.push(newCity);
 
   return c.json(newCity, 201);
 });
 
 // DELETE /cities
 app.delete("/cities", (c) => {
-  cities = [];
+  citiesJSON = [];
 
   return c.json({ message: "All cities has been deleted" });
 });
@@ -118,12 +118,12 @@ app.delete("/cities", (c) => {
 app.delete("/cities/:id", (c) => {
   const id = parseInt(c.req.param("id"));
 
-  const city = cities.find((city) => city.id === id);
+  const city = citiesJSON.find((city) => city.id === id);
   if (!city) return c.json({ message: `City by id ${id} not found` }, 404);
 
-  const updateCities = cities.filter((city) => city.id !== id);
+  const updateCities = citiesJSON.filter((city) => city.id !== id);
 
-  cities = updateCities;
+  citiesJSON = updateCities;
 
   return c.json({
     message: `City by id ${id} has been deleted`,
@@ -135,12 +135,12 @@ app.delete("/cities/:id", (c) => {
 app.patch("/cities/:id", async (c) => {
   const id = parseInt(c.req.param("id"));
 
-  const city = cities.find((city) => city.id === id);
+  const city = citiesJSON.find((city) => city.id === id);
   if (!city) return c.json({ message: `City by id '${id}' not found` }, 404);
 
   const body: UpdateCity = await c.req.json();
 
-  const updatedCities = cities.map((city) => {
+  const updatedCities = citiesJSON.map((city) => {
     if (city.id === id) {
       return {
         ...city,
@@ -152,7 +152,7 @@ app.patch("/cities/:id", async (c) => {
     }
   });
 
-  cities = updatedCities;
+  citiesJSON = updatedCities;
 
   return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
@@ -163,23 +163,23 @@ app.put("/cities/:id", async (c) => {
 
   const body: UpdateCity = await c.req.json();
 
-  const city = cities.find((city) => city.id === id);
+  const city = citiesJSON.find((city) => city.id === id);
 
   if (!city) {
     const newCity: City = {
-      id: createNewId(cities),
+      id: createNewId(citiesJSON),
       slug: createNewSlug(body.name),
       name: body.name,
       areaSize: body.areaSize,
       description: body.description || null,
     };
 
-    cities.push(newCity);
+    citiesJSON.push(newCity);
 
     return c.json(newCity, 201);
   }
 
-  const updatedCities = cities.map((city) => {
+  const updatedCities = citiesJSON.map((city) => {
     if (city.id === id) {
       return {
         ...city,
@@ -191,7 +191,7 @@ app.put("/cities/:id", async (c) => {
     }
   });
 
-  cities = updatedCities;
+  citiesJSON = updatedCities;
 
   return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
@@ -202,7 +202,7 @@ app.get("/search", (c) => {
 
   if (!q) return c.json({ message: "Query is required" }, 400);
 
-  const results = cities.filter(
+  const results = citiesJSON.filter(
     (city) =>
       city.slug.toLowerCase().includes(q.toLowerCase()) ||
       city.name.toLocaleLowerCase().includes(q.toLowerCase()) ||
@@ -216,7 +216,7 @@ app.get("/search", (c) => {
 app.get("/admin/cities/:id", (c) => {
   const id = parseInt(c.req.param("id"));
 
-  const city = cities.find((city) => city.id === id);
+  const city = citiesJSON.find((city) => city.id === id);
 
   if (!city) return c.json({ message: `City by id ${id} not found` }, 400);
 
