@@ -8,6 +8,7 @@ import {
 } from "./data/cities";
 import { createNewSlug } from "./lib/slug";
 import { createNewId } from "./lib/id";
+import { prisma } from "./lib/prisma";
 
 let citiesJSON = initialCities;
 
@@ -69,18 +70,20 @@ app.get("/", (c) => {
 });
 
 // GET /cities
-app.get("/cities", (c) => {
-  // TO DO: Retrieve data from database
+app.get("/cities", async (c) => {
+  const cities = await prisma.city.findMany();
 
-  return c.json(citiesJSON);
+  return c.json(cities);
 });
 
 // GET /cities/:slug
-app.get("/cities/:slug", (c) => {
+app.get("/cities/:slug", async (c) => {
   const slug = c.req.param("slug");
 
-  const city = citiesJSON.find((city) => city.slug === slug);
-  if (!city) return c.json({ message: `City by slug ${slug} not found` }, 400);
+  const city = await prisma.city.findUnique({ where: { slug } });
+
+  if (!city)
+    return c.json({ message: `City by slug '${slug}' not found` }, 404);
 
   return c.json(city);
 });
