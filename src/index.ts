@@ -80,16 +80,11 @@ app.get("/cities", async (c) => {
 app.get("/cities/:slug", async (c) => {
   const slug = c.req.param("slug");
 
-<<<<<<< HEAD
   // const city = citiesJSON.find((city) => city.slug === slug);
   const city = await prisma.city.findUnique({ where: { slug } });
 
   if (!city)
     return c.json({ message: `City by slug '${slug}' not found` }, 404);
-=======
-  const city = citiesJSON.find((city) => city.slug === slug);
-  if (!city) return c.json({ message: `City by slug ${slug} not found` }, 400);
->>>>>>> 3adb02a9aefb904641b78259fada8b82dd349327
 
   return c.json(city);
 });
@@ -211,14 +206,6 @@ app.get("/search", async (c) => {
 
   if (!q) return c.json({ message: "Query is required" }, 404);
 
-<<<<<<< HEAD
-  // const results = citiesJSON.filter(
-  //   (city) =>
-  //     city.slug.toLowerCase().includes(q.toLowerCase()) ||
-  //     city.name.toLocaleLowerCase().includes(q.toLowerCase()) ||
-  //     city.description?.toLowerCase().includes(q.toLowerCase())
-  // );
-
   const results = await prisma.city.findMany({
     where: {
       OR: [
@@ -228,14 +215,6 @@ app.get("/search", async (c) => {
       ],
     },
   });
-=======
-  const results = citiesJSON.filter(
-    (city) =>
-      city.slug.toLowerCase().includes(q.toLowerCase()) ||
-      city.name.toLocaleLowerCase().includes(q.toLowerCase()) ||
-      city.description?.toLowerCase().includes(q.toLowerCase())
-  );
->>>>>>> 3adb02a9aefb904641b78259fada8b82dd349327
 
   return c.json(results, 200);
 });
@@ -245,12 +224,8 @@ app.get("/admin/cities/:id", async (c) => {
   // const id = parseInt(c.req.param("id"));
   const id = c.req.param("id");
 
-<<<<<<< HEAD
   // const city = citiesJSON.find((city) => city.id === id);
   const city = await prisma.city.findUnique({ where: { id } });
-=======
-  const city = citiesJSON.find((city) => city.id === id);
->>>>>>> 3adb02a9aefb904641b78259fada8b82dd349327
 
   if (!city) return c.json({ message: `City by id ${id} not found` }, 404);
 
