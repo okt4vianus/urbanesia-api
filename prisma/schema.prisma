@@ -10,10 +10,26 @@ datasource db {
 model City {
   id String @id @default(ulid())
 
-  slug        String  @unique //kota-manado
-  name        String  @unique //Kota Manado
+  slug        String  @unique // kota-manado
+  name        String  @unique // Kota Manado
   areaSize    Float // in km2 = 162.29
   description String? @db.Text // ? optional field
+
+  places Place[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Place {
+  id String @id @default(ulid())
+
+  slug        String  @unique // taman-bunga
+  name        String  @unique // Taman Bunga
+  description String? @db.Text // ? optional field
+
+  city   City   @relation(fields: [cityId], references: [id])
+  cityId String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
