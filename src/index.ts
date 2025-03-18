@@ -14,7 +14,7 @@ let citiesJSON = initialCities;
 
 const app = new Hono();
 
-// GET /
+// ✅ GET /
 app.get("/", (c) => {
   return c.json({
     message: "Urbanesia API",
@@ -69,18 +69,17 @@ app.get("/", (c) => {
   });
 });
 
-// GET /cities
+// ✅ GET /cities
 app.get("/cities", async (c) => {
-  const cities = await prisma.city.findMany(); // Retrieve data from database
+  const cities = await prisma.city.findMany();
 
-  return c.json(citiesJSON);
+  return c.json(cities);
 });
 
-// GET /cities/:slug
+// ✅ GET /cities/:slug
 app.get("/cities/:slug", async (c) => {
   const slug = c.req.param("slug");
 
-  // const city = citiesJSON.find((city) => city.slug === slug);
   const city = await prisma.city.findUnique({ where: { slug } });
 
   if (!city)
@@ -89,7 +88,7 @@ app.get("/cities/:slug", async (c) => {
   return c.json(city);
 });
 
-// POST /cities
+// ❌ POST /cities
 app.post("/cities", async (c) => {
   const body: CreateCity = await c.req.json();
 
@@ -111,14 +110,14 @@ app.post("/cities", async (c) => {
   return c.json(newCity, 201);
 });
 
-// DELETE /cities
+// ❌ DELETE /cities
 app.delete("/cities", (c) => {
   citiesJSON = [];
 
   return c.json({ message: "All cities has been deleted" });
 });
 
-// DELETE /cities/:id
+// ❌ DELETE /cities/:id
 app.delete("/cities/:id", (c) => {
   const id = parseInt(c.req.param("id"));
 
@@ -135,7 +134,7 @@ app.delete("/cities/:id", (c) => {
   });
 });
 
-// PATCH /cities/:id
+// ❌ PATCH /cities/:id
 app.patch("/cities/:id", async (c) => {
   const id = parseInt(c.req.param("id"));
 
@@ -161,7 +160,7 @@ app.patch("/cities/:id", async (c) => {
   return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
 
-// PUT /cities/:id
+// ❌  PUT /cities/:id
 app.put("/cities/:id", async (c) => {
   const id = parseInt(c.req.param("id"));
 
@@ -200,13 +199,13 @@ app.put("/cities/:id", async (c) => {
   return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
 
-// GET /search?q=bunga
+// ✅ GET /search?q=bunga
 app.get("/search", async (c) => {
   const q = c.req.query("q");
 
   if (!q) return c.json({ message: "Query is required" }, 404);
 
-  const results = await prisma.city.findMany({
+  const cities = await prisma.city.findMany({
     where: {
       OR: [
         { slug: { contains: q, mode: "insensitive" } },
@@ -216,15 +215,13 @@ app.get("/search", async (c) => {
     },
   });
 
-  return c.json(results, 200);
+  return c.json(cities, 200);
 });
 
-// GET /admin/cities/:id
+// ✅ GET /admin/cities/:id
 app.get("/admin/cities/:id", async (c) => {
-  // const id = parseInt(c.req.param("id"));
   const id = c.req.param("id");
 
-  // const city = citiesJSON.find((city) => city.id === id);
   const city = await prisma.city.findUnique({ where: { id } });
 
   if (!city) return c.json({ message: `City by id ${id} not found` }, 404);
