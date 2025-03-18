@@ -10,8 +10,13 @@ datasource db {
 model City {
   id String @id @default(ulid())
 
+<<<<<<< HEAD
   slug        String  @unique //kota-manado
   name        String  @unique //Kota Manado
+=======
+  slug        String  @unique // kota-manado
+  name        String  @unique // Kota Manado
+>>>>>>> 3adb02a9aefb904641b78259fada8b82dd349327
   areaSize    Float // in km2 = 162.29
   description String? @db.Text // ? optional field
 
