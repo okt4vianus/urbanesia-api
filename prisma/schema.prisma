@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,11 +8,13 @@ datasource db {
 }
 
 model City {
-  id          Int      @id @default(autoincrement()) // 1, 2, 3
-  slug        String   @unique // kota-manado
-  name        String   @unique // Kota Manado
+  id String @id @default(ulid())
+
+  slug        String  @unique //kota-manado
+  name        String  @unique //Kota Manado
   areaSize    Float // in km2 = 162.29
-  description String?  @db.Text // ? optional field
-  createdAt   DateTime @default(now())
-  updateAt    DateTime @updatedAt
+  description String? @db.Text // ? optional field
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }

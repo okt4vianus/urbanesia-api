@@ -8,8 +8,9 @@ import {
 } from "./data/cities";
 import { createNewSlug } from "./lib/slug";
 import { createNewId } from "./lib/id";
+import { prisma } from "./lib/prisma";
 
-let cities = initialCities;
+let citiesJSON = initialCities;
 
 const app = new Hono();
 
@@ -69,18 +70,21 @@ app.get("/", (c) => {
 });
 
 // GET /cities
-app.get("/cities", (c) => {
-  // TO DO: Retrieve data from database
+app.get("/cities", async (c) => {
+  const cities = await prisma.city.findMany(); // Retrieve data from database
 
   return c.json(cities);
 });
 
 // GET /cities/:slug
-app.get("/cities/:slug", (c) => {
+app.get("/cities/:slug", async (c) => {
   const slug = c.req.param("slug");
 
-  const city = cities.find((city) => city.slug === slug);
-  if (!city) return c.json({ message: `City by slug ${slug} not found` }, 400);
+  // const city = citiesJSON.find((city) => city.slug === slug);
+  const city = await prisma.city.findUnique({ where: { slug } });
+
+  if (!city)
+    return c.json({ message: `City by slug '${slug}' not found` }, 404);
 
   return c.json(city);
 });
@@ -94,7 +98,7 @@ app.post("/cities", async (c) => {
   }
 
   const newCity: City = {
-    id: createNewId(cities),
+    id: createNewId(citiesJSON),
     slug: createNewSlug(body.name),
     name: body.name,
     areaSize: body.areaSize,
@@ -102,14 +106,14 @@ app.post("/cities", async (c) => {
     description: body.description || null,
   };
 
-  cities.push(newCity);
+  citiesJSON.push(newCity);
 
   return c.json(newCity, 201);
 });
 
 // DELETE /cities
 app.delete("/cities", (c) => {
-  cities = [];
+  citiesJSON = [];
 
   return c.json({ message: "All cities has been deleted" });
 });
@@ -118,12 +122,12 @@ app.delete("/cities", (c) => {
 app.delete("/cities/:id", (c) => {
   const id = parseInt(c.req.param("id"));
 
-  const city = cities.find((city) => city.id === id);
+  const city = citiesJSON.find((city) => city.id === id);
   if (!city) return c.json({ message: `City by id ${id} not found` }, 404);
 
-  const updateCities = cities.filter((city) => city.id !== id);
+  const updateCities = citiesJSON.filter((city) => city.id !== id);
 
-  cities = updateCities;
+  citiesJSON = updateCities;
 
   return c.json({
     message: `City by id ${id} has been deleted`,
@@ -135,12 +139,12 @@ app.delete("/cities/:id", (c) => {
 app.patch("/cities/:id", async (c) => {
   const id = parseInt(c.req.param("id"));
 
-  const city = cities.find((city) => city.id === id);
+  const city = citiesJSON.find((city) => city.id === id);
   if (!city) return c.json({ message: `City by id '${id}' not found` }, 404);
 
   const body: UpdateCity = await c.req.json();
 
-  const updatedCities = cities.map((city) => {
+  const updatedCities = citiesJSON.map((city) => {
     if (city.id === id) {
       return {
         ...city,
@@ -152,7 +156,7 @@ app.patch("/cities/:id", async (c) => {
     }
   });
 
-  cities = updatedCities;
+  citiesJSON = updatedCities;
 
   return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
@@ -163,23 +167,23 @@ app.put("/cities/:id", async (c) => {
 
   const body: UpdateCity = await c.req.json();
 
-  const city = cities.find((city) => city.id === id);
+  const city = citiesJSON.find((city) => city.id === id);
 
   if (!city) {
     const newCity: City = {
-      id: createNewId(cities),
+      id: createNewId(citiesJSON),
       slug: createNewSlug(body.name),
       name: body.name,
       areaSize: body.areaSize,
       description: body.description || null,
     };
 
-    cities.push(newCity);
+    citiesJSON.push(newCity);
 
     return c.json(newCity, 201);
   }
 
-  const updatedCities = cities.map((city) => {
+  const updatedCities = citiesJSON.map((city) => {
     if (city.id === id) {
       return {
         ...city,
@@ -191,34 +195,46 @@ app.put("/cities/:id", async (c) => {
     }
   });
 
-  cities = updatedCities;
+  citiesJSON = updatedCities;
 
   return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
 
 // GET /search?q=bunga
-app.get("/search", (c) => {
+app.get("/search", async (c) => {
   const q = c.req.query("q");
 
-  if (!q) return c.json({ message: "Query is required" }, 400);
+  if (!q) return c.json({ message: "Query is required" }, 404);
 
-  const results = cities.filter(
-    (city) =>
-      city.slug.toLowerCase().includes(q.toLowerCase()) ||
-      city.name.toLocaleLowerCase().includes(q.toLowerCase()) ||
-      city.description?.toLowerCase().includes(q.toLowerCase())
-  );
+  // const results = citiesJSON.filter(
+  //   (city) =>
+  //     city.slug.toLowerCase().includes(q.toLowerCase()) ||
+  //     city.name.toLocaleLowerCase().includes(q.toLowerCase()) ||
+  //     city.description?.toLowerCase().includes(q.toLowerCase())
+  // );
+
+  const results = await prisma.city.findMany({
+    where: {
+      OR: [
+        { slug: { contains: q, mode: "insensitive" } },
+        { name: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+      ],
+    },
+  });
 
   return c.json(results, 200);
 });
 
 // GET /admin/cities/:id
-app.get("/admin/cities/:id", (c) => {
-  const id = parseInt(c.req.param("id"));
+app.get("/admin/cities/:id", async (c) => {
+  // const id = parseInt(c.req.param("id"));
+  const id = c.req.param("id");
 
-  const city = cities.find((city) => city.id === id);
+  // const city = citiesJSON.find((city) => city.id === id);
+  const city = await prisma.city.findUnique({ where: { id } });
 
-  if (!city) return c.json({ message: `City by id ${id} not found` }, 400);
+  if (!city) return c.json({ message: `City by id ${id} not found` }, 404);
 
   return c.json(city);
 });
