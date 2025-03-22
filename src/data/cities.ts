@@ -1,5 +1,4 @@
 export type CitySeed = {
-  // id: number; // 1, 2, 3
   slug: string; // kota-manado
   name: string; // Kota Manado
   areaSize: number; // in km2 = 162.29
