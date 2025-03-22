@@ -212,4 +212,15 @@ app.get("/admin/cities/:id", async (c) => {
   return c.json(city);
 });
 
+app.get("/places", async (c) => {
+  const places = await prisma.place.findMany({
+    relationLoadStrategy: "join",
+    include: {
+      city: true,
+    },
+  });
+
+  return c.json(places);
+});
+
 export default app;
