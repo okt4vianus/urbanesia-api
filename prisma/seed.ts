@@ -1,4 +1,5 @@
 import { citiesSeed } from "../src/data/cities";
+import { placesSeed } from "../src/data/places";
 import { prisma } from "../src/lib/prisma";
 
 async function main() {
@@ -9,6 +10,25 @@ async function main() {
       create: citySeed,
     });
     console.info(`🏙️ City: ${city.name}`);
+  }
+
+  for (const placeSeed of placesSeed) {
+    const place = await prisma.place.upsert({
+      where: { slug: placeSeed.slug },
+      update: {
+        name: placeSeed.name,
+        description: placeSeed.description,
+        city: { connect: { slug: placeSeed.citySlug } },
+      },
+      create: {
+        slug: placeSeed.slug,
+        name: placeSeed.name,
+        description: placeSeed.description,
+        city: { connect: { slug: placeSeed.citySlug } },
+      },
+    });
+
+    console.info(`🏛️ Place: ${place.name}`);
   }
 }
 
