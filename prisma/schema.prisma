@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -15,6 +16,24 @@ model City {
   areaSize    Float // in km2 = 162.29
   description String? @db.Text // ? optional field
 
+  place Place[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model Place {
+  id String @id @default(ulid())
+
+  slug        String  @unique
+  name        String  @unique
+  latitude    Float
+  longitude   Float
+  description String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  city   City   @relation(fields: [cityId], references: [id])
+  cityId String
 }

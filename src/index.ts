@@ -1,16 +1,8 @@
 import { Hono } from "hono";
 
-import {
-  citiesSeed as initialCities,
-  type CreateCity,
-  type CitySeed,
-  type UpdateCity,
-} from "./data/cities";
+import { type CreateCity } from "./data/cities";
 import { createNewSlug } from "./lib/slug";
-import { createNewId } from "./lib/id";
 import { prisma } from "./lib/prisma";
-
-let citiesJSON = initialCities;
 
 const app = new Hono();
 
@@ -24,6 +16,11 @@ app.get("/", (c) => {
         method: "GET",
         path: "/cities",
         description: "Get a list of all cities",
+      },
+      {
+        method: "GET",
+        path: "/places",
+        description: "Get a list of all places",
       },
       {
         method: "GET",
@@ -71,7 +68,9 @@ app.get("/", (c) => {
 
 // ✅ GET /cities
 app.get("/cities", async (c) => {
-  const cities = await prisma.city.findMany();
+  const cities = await prisma.city.findMany({
+    orderBy: [{ id: "asc" }, { createdAt: "asc" }],
+  });
 
   return c.json(cities);
 });
@@ -90,90 +89,83 @@ app.get("/cities/:slug", async (c) => {
 
 // ✅ POST /cities
 app.post("/cities", async (c) => {
-  const body: CreateCity = await c.req.json();
+  try {
+    const body: CreateCity = await c.req.json();
 
-  // Todo: use prisma
-  const city = await prisma.city.create({
-    data: {
-      ...body,
-      slug: createNewSlug(body.name),
-    },
-  });
+    const city = await prisma.city.create({
+      data: {
+        ...body,
+        slug: createNewSlug(body.name),
+      },
+    });
 
-  return c.json(city, 201);
-
-  // if (!body.name || !body.areaSize) {
-  //   return c.json({ message: "Name and areaSize are required" }, 400);
-  // }
-
-  // const newCity: CitySeed = {
-  //   // id: createNewId(citiesJSON),
-  //   slug: createNewSlug(body.name),
-  //   name: body.name,
-  //   areaSize: body.areaSize,
-  //   //...body, //name, area-size, description,
-  //   description: body.description || null,
-  // };
-
-  // citiesJSON.push(newCity);
-
-  // return c.json(newCity, 201);
+    return c.json(city, 201);
+  } catch (error) {
+    return c.json({ error: "Failed to create new city", details: error }, 500);
+  }
 });
 
 // ✅ DELETE /cities
 app.delete("/cities", async (c) => {
-  // Todo: use prisma
   try {
     await prisma.city.deleteMany();
     return c.json({ message: "All cities have been deleted" }, 200);
   } catch (error) {
-    return c.json({ error: "Failed to delete cities", details: error }, 400);
+    return c.json({ error: "Failed to delete cities", details: error }, 500);
   }
-
-  // citiesJSON = [];
-
-  // return c.json({ message: "All cities has been deleted" });
 });
 
 // ✅ DELETE /cities/:id
 app.delete("/cities/:id", async (c) => {
-  // Todo: use prisma
-  const id = c.req.param("id"); // ID adalah string
+  const id = c.req.param("id");
 
   try {
-    const city = await prisma.city.findUnique({ where: { id } });
-
-    if (!city) {
-      return c.json({ message: `City with ID ${id} not found` }, 404);
-    }
-
-    await prisma.city.delete({ where: { id } });
+    const deleteCity = await prisma.city.delete({ where: { id } });
 
     return c.json({
       message: `City with ID ${id} has been deleted`,
-      value: city,
+      data: deleteCity,
     });
   } catch (error) {
-    return c.json({ error: "Failed to delete city", details: error }, 400);
+    return c.json({ error: "Failed to delete city", details: error }, 500);
   }
 
-  // const id = parseInt(c.req.param("id"));
+  // try {
+  //   const city = await prisma.city.findUnique({ where: { id } });
 
-  // const city = citiesJSON.find((city) => city.id === id);
-  // if (!city) return c.json({ message: `City by id ${id} not found` }, 404);
+  //   if (!city) {
+  //     return c.json({ message: `City with ID ${id} not found` }, 404);
+  //   }
 
-  // const updateCities = citiesJSON.filter((city) => city.id !== id);
+  //   await prisma.city.delete({ where: { id } });
 
-  // citiesJSON = updateCities;
-
-  // return c.json({
-  //   message: `City by id ${id} has been deleted`,
-  //   value: city,
-  // });
+  //   return c.json({
+  //     message: `City with ID ${id} has been deleted`,
+  //     value: city,
+  //   });
+  // } catch (error) {
+  //   return c.json({ error: "Failed to delete city", details: error }, 500);
+  // }
 });
 
 // ❌ PATCH /cities/:id
 app.patch("/cities/:id", async (c) => {
+  try {
+    const id = c.req.param("id");
+    const body = await c.req.json();
+    const updatedCity = await prisma.city.update({
+      where: { id },
+      data: {
+        ...body,
+        slug: body.name ? createNewSlug(body.name) : undefined,
+      },
+    });
+
+    return c.json(updatedCity, 200);
+  } catch (error) {
+    return c.json({ message: "Failed to update city", error }, 500);
+  }
+
   // Todo: use prisma
   // const id = parseInt(c.req.param("id"));
   // const city = citiesJSON.find((city) => city.id === id);
@@ -196,14 +188,30 @@ app.patch("/cities/:id", async (c) => {
 
 // ❌  PUT /cities/:id
 app.put("/cities/:id", async (c) => {
-  const id = parseInt(c.req.param("id"));
+  try {
+    const id = c.req.param("id");
+    const body = await c.req.json();
 
-  const body: UpdateCity = await c.req.json();
+    const result = await prisma.city.upsert({
+      where: { id },
+      update: {
+        ...body,
+        slug: body.slug || createNewSlug(body.name),
+      },
+      create: {
+        id,
+        name: body.name,
+        slug: createNewSlug(body.name),
+        areaSize: body.areaSize,
+        description: body.description || null,
+      },
+    });
 
-  // Todo: use Prisma
-
+    return c.json(result, 200);
+  } catch (error) {
+    return c.json({ message: "Put failed", error }, 500);
+  }
   // const city = citiesJSON.find((city) => city.id === id);
-
   // if (!city) {
   //   const newCity: CitySeed = {
   //     id: createNewId(citiesJSON),
@@ -212,12 +220,9 @@ app.put("/cities/:id", async (c) => {
   //     areaSize: body.areaSize,
   //     description: body.description || null,
   //   };
-
   //   citiesJSON.push(newCity);
-
   //   return c.json(newCity, 201);
   // }
-
   // const updatedCities = citiesJSON.map((city) => {
   //   if (city.id === id) {
   //     return {
@@ -229,9 +234,7 @@ app.put("/cities/:id", async (c) => {
   //     return city;
   //   }
   // });
-
   // citiesJSON = updatedCities;
-
   // return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
 
@@ -263,6 +266,19 @@ app.get("/admin/cities/:id", async (c) => {
   if (!city) return c.json({ message: `City by id ${id} not found` }, 404);
 
   return c.json(city);
+});
+
+// GET /places
+app.get("/places", async (c) => {
+  const places = await prisma.place.findMany({
+    relationLoadStrategy: "join",
+    include: {
+      city: true,
+    },
+    orderBy: [{ id: "asc" }, { createdAt: "asc" }],
+  });
+
+  return c.json(places);
 });
 
 export default app;
