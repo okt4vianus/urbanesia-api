@@ -1,8 +1,11 @@
 import { Hono } from "hono";
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
 
-import { type CreateCity } from "./data/cities";
+import { CreateCitySchema, UpdateCity, type CreateCity } from "./data/cities";
 import { createNewSlug } from "./lib/slug";
 import { prisma } from "./lib/prisma";
+import { createNameNanoId, createSlugNanoId } from "./lib/nanoid";
 
 const app = new Hono();
 
@@ -88,14 +91,15 @@ app.get("/cities/:slug", async (c) => {
 });
 
 // ✅ POST /cities
-app.post("/cities", async (c) => {
+// TODO: Validate with Zod Validator Middleware
+app.post("/cities", zValidator("json", CreateCitySchema), async (c) => {
   try {
-    const body: CreateCity = await c.req.json();
+    const body = c.req.valid("json");
 
     const city = await prisma.city.create({
       data: {
         ...body,
-        slug: createNewSlug(body.name),
+        slug: body.slug ?? createNewSlug(body.name),
       },
     });
 
@@ -148,11 +152,12 @@ app.delete("/cities/:id", async (c) => {
   // }
 });
 
-// ❌ PATCH /cities/:id
+// ✅ PATCH /cities/:id
+// TODO: Validate with Zod Validator Middleware
 app.patch("/cities/:id", async (c) => {
   try {
     const id = c.req.param("id");
-    const body = await c.req.json();
+    const body: CreateCity = await c.req.json();
     const updatedCity = await prisma.city.update({
       where: { id },
       data: {
@@ -165,45 +170,33 @@ app.patch("/cities/:id", async (c) => {
   } catch (error) {
     return c.json({ message: "Failed to update city", error }, 500);
   }
-
-  // Todo: use prisma
-  // const id = parseInt(c.req.param("id"));
-  // const city = citiesJSON.find((city) => city.id === id);
-  // if (!city) return c.json({ message: `City by id '${id}' not found` }, 404);
-  // const body: UpdateCity = await c.req.json();
-  // const updatedCities = citiesJSON.map((city) => {
-  //   if (city.id === id) {
-  //     return {
-  //       ...city,
-  //       ...body,
-  //       slug: body.slug || createNewSlug(body.name),
-  //     };
-  //   } else {
-  //     return city;
-  //   }
-  // });
-  // citiesJSON = updatedCities;
-  // return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
 
-// ❌  PUT /cities/:id
+// ✅ PUT /cities/:id
+// TODO: Validate with Zod Validator Middleware
 app.put("/cities/:id", async (c) => {
   try {
     const id = c.req.param("id");
-    const body = await c.req.json();
+
+    const body: UpdateCity = await c.req.json();
+
+    const slug = body.slug
+      ? body.slug
+      : body.name
+      ? createNewSlug(body.name)
+      : undefined;
 
     const result = await prisma.city.upsert({
       where: { id },
       update: {
         ...body,
-        slug: body.slug || createNewSlug(body.name),
+        slug: slug,
       },
       create: {
-        id,
-        name: body.name,
-        slug: createNewSlug(body.name),
-        areaSize: body.areaSize,
-        description: body.description || null,
+        ...body,
+        slug: slug ?? createSlugNanoId(),
+        name: body.name ?? createNameNanoId(),
+        areaSize: body.areaSize ?? 0,
       },
     });
 
@@ -211,31 +204,6 @@ app.put("/cities/:id", async (c) => {
   } catch (error) {
     return c.json({ message: "Put failed", error }, 500);
   }
-  // const city = citiesJSON.find((city) => city.id === id);
-  // if (!city) {
-  //   const newCity: CitySeed = {
-  //     id: createNewId(citiesJSON),
-  //     slug: createNewSlug(body.name),
-  //     name: body.name,
-  //     areaSize: body.areaSize,
-  //     description: body.description || null,
-  //   };
-  //   citiesJSON.push(newCity);
-  //   return c.json(newCity, 201);
-  // }
-  // const updatedCities = citiesJSON.map((city) => {
-  //   if (city.id === id) {
-  //     return {
-  //       ...city,
-  //       ...body,
-  //       slug: body.slug || createNewSlug(body.name),
-  //     };
-  //   } else {
-  //     return city;
-  //   }
-  // });
-  // citiesJSON = updatedCities;
-  // return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
 
 // ✅ GET /search?q=bunga
