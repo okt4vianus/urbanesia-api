@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 
 import { CreateCitySchema, UpdateCity, type CreateCity } from "./data/cities";
