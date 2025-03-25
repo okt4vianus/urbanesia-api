@@ -1,6 +1,9 @@
 import { citiesSeed } from "../src/data/cities";
 import { placesSeed } from "../src/data/places";
-import { prisma } from "../src/lib/prisma";
+
+import { PrismaClient } from "@prisma/client";
+
+export const prisma = new PrismaClient();
 
 async function main() {
   for (const citySeed of citiesSeed) {

@@ -1,22 +1,30 @@
+import { z } from "zod";
+
 export type CitySeed = {
-  // id: number; // 1, 2, 3
   slug: string; // kota-manado
   name: string; // Kota Manado
   areaSize: number; // in km2 = 162.29
   description?: string | null; // ? optional field
 };
 
+export const CreateCitySchema = z.object({
+  slug: z.string().min(3).optional(),
+  name: z.string().min(3),
+  areaSize: z.number().min(0),
+  description: z.string().min(3).optional(),
+});
+
 export type CreateCity = {
+  slug?: string;
   name: string;
   areaSize: number;
   description?: string;
 };
 
-// export type UpdateCity = CreateCity;
 export type UpdateCity = {
-  slug: string;
-  name: string;
-  areaSize: number;
+  slug?: string;
+  name?: string;
+  areaSize?: number;
   description?: string;
 };
 
