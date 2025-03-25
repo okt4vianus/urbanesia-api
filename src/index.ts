@@ -133,23 +133,6 @@ app.delete("/cities/:id", async (c) => {
   } catch (error) {
     return c.json({ error: "Failed to delete city", details: error }, 500);
   }
-
-  // try {
-  //   const city = await prisma.city.findUnique({ where: { id } });
-
-  //   if (!city) {
-  //     return c.json({ message: `City with ID ${id} not found` }, 404);
-  //   }
-
-  //   await prisma.city.delete({ where: { id } });
-
-  //   return c.json({
-  //     message: `City with ID ${id} has been deleted`,
-  //     value: city,
-  //   });
-  // } catch (error) {
-  //   return c.json({ error: "Failed to delete city", details: error }, 500);
-  // }
 });
 
 // ✅ PATCH /cities/:id
