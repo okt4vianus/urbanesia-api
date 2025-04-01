@@ -31,9 +31,9 @@ model Place {
   longitude   Float
   description String? @db.Text
 
+  city   City?   @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  cityId String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
-
-  city   City   @relation(fields: [cityId], references: [id])
-  cityId String
 }

@@ -1,8 +1,16 @@
 import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
 
-import { type CreateCity } from "./data/cities";
-import { createNewSlug } from "./lib/slug";
+// import {
+//   CreateCitySchema,
+//   UpdateCity,
+//   UpdateCitySchema,
+//   type CreateCity,
+// } from "./data/cities_temp";
+
 import { prisma } from "./lib/prisma";
+import { CreateCitySchema, UpdateCitySchema } from "./modules/city/schema";
+import { createNewSlug } from "./lib/slug";
 
 const app = new Hono();
 
@@ -88,14 +96,18 @@ app.get("/cities/:slug", async (c) => {
 });
 
 // ✅ POST /cities
-app.post("/cities", async (c) => {
+// Use Zod validation middleware
+
+// app.post("/cities", async (c) => {
+app.post("/cities", zValidator("json", CreateCitySchema), async (c) => {
   try {
-    const body: CreateCity = await c.req.json();
+    // const body: CreateCity = await c.req.json();
+    const body = c.req.valid("json");
 
     const city = await prisma.city.create({
       data: {
         ...body,
-        slug: createNewSlug(body.name),
+        slug: body.slug ?? createNewSlug(body.name),
       },
     });
 
@@ -148,16 +160,21 @@ app.delete("/cities/:id", async (c) => {
   // }
 });
 
-// ❌ PATCH /cities/:id
-app.patch("/cities/:id", async (c) => {
+// ✅ PATCH /cities/:id
+// Use Zod validation middleware
+
+// app.patch("/cities/:id", async (c) => {
+app.patch("/cities/:id", zValidator("json", UpdateCitySchema), async (c) => {
   try {
     const id = c.req.param("id");
-    const body = await c.req.json();
+    // const body: UpdateCity = await c.req.json();
+    const body = c.req.valid("json");
     const updatedCity = await prisma.city.update({
       where: { id },
       data: {
         ...body,
-        slug: body.name ? createNewSlug(body.name) : undefined,
+        // slug: body.name ? createNewSlug(body.name) : undefined,
+        slug: body.slug ?? createNewSlug(body.name ? body.name : ""),
       },
     });
 
@@ -165,41 +182,31 @@ app.patch("/cities/:id", async (c) => {
   } catch (error) {
     return c.json({ message: "Failed to update city", error }, 500);
   }
-
-  // Todo: use prisma
-  // const id = parseInt(c.req.param("id"));
-  // const city = citiesJSON.find((city) => city.id === id);
-  // if (!city) return c.json({ message: `City by id '${id}' not found` }, 404);
-  // const body: UpdateCity = await c.req.json();
-  // const updatedCities = citiesJSON.map((city) => {
-  //   if (city.id === id) {
-  //     return {
-  //       ...city,
-  //       ...body,
-  //       slug: body.slug || createNewSlug(body.name),
-  //     };
-  //   } else {
-  //     return city;
-  //   }
-  // });
-  // citiesJSON = updatedCities;
-  // return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
 
-// ❌  PUT /cities/:id
-app.put("/cities/:id", async (c) => {
+// ✅  PUT /cities/:id
+// Use Zod validation middleware
+
+// app.put("/cities/:id", async (c) => {
+app.put("/cities/:id", zValidator("json", UpdateCitySchema), async (c) => {
   try {
     const id = c.req.param("id");
-    const body = await c.req.json();
+    // const body: CreateCity = await c.req.json();
+    const body = c.req.valid("json");
+
+    // ✅ Check if `name` and `areaSize` are missing
+    if (!body.name || body.areaSize === undefined) {
+      return c.json({ message: "name and areaSize are required" }, 400);
+    }
 
     const result = await prisma.city.upsert({
       where: { id },
       update: {
         ...body,
-        slug: body.slug || createNewSlug(body.name),
+        // slug: body.name ? createNewSlug(body.name) : undefined,
+        slug: body.slug ?? createNewSlug(body.name),
       },
       create: {
-        id,
         name: body.name,
         slug: createNewSlug(body.name),
         areaSize: body.areaSize,
@@ -211,31 +218,6 @@ app.put("/cities/:id", async (c) => {
   } catch (error) {
     return c.json({ message: "Put failed", error }, 500);
   }
-  // const city = citiesJSON.find((city) => city.id === id);
-  // if (!city) {
-  //   const newCity: CitySeed = {
-  //     id: createNewId(citiesJSON),
-  //     slug: createNewSlug(body.name),
-  //     name: body.name,
-  //     areaSize: body.areaSize,
-  //     description: body.description || null,
-  //   };
-  //   citiesJSON.push(newCity);
-  //   return c.json(newCity, 201);
-  // }
-  // const updatedCities = citiesJSON.map((city) => {
-  //   if (city.id === id) {
-  //     return {
-  //       ...city,
-  //       ...body,
-  //       slug: body.slug || createNewSlug(body.name),
-  //     };
-  //   } else {
-  //     return city;
-  //   }
-  // });
-  // citiesJSON = updatedCities;
-  // return c.json({ message: `City by id ${id} has been updated` }, 200);
 });
 
 // ✅ GET /search?q=bunga

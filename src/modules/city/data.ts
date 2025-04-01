@@ -7,6 +7,7 @@ export type CitySeed = {
 };
 
 export type CreateCity = {
+  slug?: string;
   name: string;
   areaSize: number;
   description?: string;
@@ -14,9 +15,9 @@ export type CreateCity = {
 
 // export type UpdateCity = CreateCity;
 export type UpdateCity = {
-  slug: string;
-  name: string;
-  areaSize: number;
+  slug?: string;
+  name?: string;
+  areaSize?: number;
   description?: string;
 };
 
