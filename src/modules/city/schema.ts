@@ -12,6 +12,18 @@ export const QuerySearchCitySchema = z.object({
   q: z.string().min(1, "Query is required"),
 });
 
+export const CitySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  areaSize: z.number(),
+  description: z.string().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const CitiesSchema = z.array(CitySchema);
+
 // Schema Create City (name, areaSize required)
 export const CreateCitySchema = z.object({
   name: z.string().min(3, "Name is required"),
