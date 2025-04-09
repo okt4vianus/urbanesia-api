@@ -23,6 +23,7 @@ citiesRoute.openapi(
     tags,
     method: "get",
     path: "/",
+    summary: "Get all cities",
     responses: {
       200: {
         content: { "application/json": { schema: CitiesResponseSchema } },
@@ -46,6 +47,7 @@ citiesRoute.openapi(
     method: "get",
     path: "/{slug}",
     request: { params: ParamCitySlugSchemaWith },
+    summary: "Get city by slug",
     responses: {
       200: {
         content: { "application/json": { schema: CityResponseSchema } },
@@ -77,6 +79,7 @@ citiesRoute.openapi(
     request: {
       body: { content: { "application/json": { schema: CreateCitySchema } } },
     },
+    summary: "Create a new city",
     responses: {
       201: {
         content: { "application/json": { schema: CityResponseSchema } },
@@ -109,6 +112,7 @@ citiesRoute.openapi(
     tags,
     method: "delete",
     path: "/",
+    summary: "Delete all cities",
     responses: {
       200: {
         description: "All cities deleted successfully",
@@ -137,6 +141,7 @@ citiesRoute.openapi(
     method: "delete",
     path: "/:id",
     request: { params: ParamCityIdSchema },
+    summary: "Delete city by ID",
     responses: {
       200: {
         description: "City deleted successfully",
@@ -175,6 +180,7 @@ citiesRoute.openapi(
         content: { "application/json": { schema: UpdatePatchCitySchema } },
       },
     },
+    summary: "Update city by ID",
     responses: {
       200: {
         content: { "application/json": { schema: CityResponseSchema } },
@@ -217,6 +223,7 @@ citiesRoute.openapi(
         content: { "application/json": { schema: UpdatePutCitySchema } },
       },
     },
+    summary: "Update or create city by ID",
     responses: {
       200: {
         content: { "application/json": { schema: CityResponseSchema } },
