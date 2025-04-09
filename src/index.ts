@@ -5,7 +5,7 @@ import { commonRoute } from "./modules/common/route";
 import { placesRoute } from "./modules/place/route";
 import { searchRoute } from "./modules/search/route";
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { apiReference, Scalar } from "@scalar/hono-api-reference";
+import { Scalar } from "@scalar/hono-api-reference";
 
 // const app = new Hono();
 const app = new OpenAPIHono();
@@ -25,12 +25,8 @@ app.doc("/openapi.json", {
   },
 });
 
-// // The OpenAPI reference
-// app.get(
-//   "/api-reference", apiReference({ url: "/openapi.json" }));
-
 app.get(
-  "/api-reference",
+  "/",
   Scalar({
     url: "/openapi.json",
     theme: "dark blue",
