@@ -51,7 +51,3 @@ export const CityResponseSchema = z.object({
 });
 
 export const CitiesResponseSchema = z.array(CityResponseSchema);
-
-export const ErrorResponseSchema = z.object({
-  message: z.string(),
-});

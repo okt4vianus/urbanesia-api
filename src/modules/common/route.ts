@@ -1,63 +1,29 @@
-import { Hono } from "hono";
+import { OpenAPIHono, z } from "@hono/zod-openapi";
+import { InfoResponseSchema } from "./schema";
 
-export const commonRoute = new Hono();
+export const commonRoute = new OpenAPIHono();
 
 // ✅ GET /
-commonRoute.get("/", (c) => {
-  return c.json({
-    message: "Urbanesia API",
-    description: "Welcome to Urbanesia API",
-    // endpoints: [
-    //   {
-    //     method: "GET",
-    //     path: "/cities",
-    //     description: "Get a list of all cities",
-    //   },
-    //   {
-    //     method: "GET",
-    //     path: "/places",
-    //     description: "Get a list of all places",
-    //   },
-    //   {
-    //     method: "GET",
-    //     path: "/cities/:slug",
-    //     description: "Get details of specific city by slug",
-    //   },
-    //   {
-    //     method: "GET",
-    //     path: "/search?=string",
-    //     description: "Search cities by query",
-    //   },
-    //   {
-    //     method: "GET",
-    //     path: "/admin/cities/:id",
-    //     description: "Get details of specific city by id",
-    //   },
-    //   {
-    //     method: "POST",
-    //     path: "/cities",
-    //     description: "Create a city",
-    //   },
-    //   {
-    //     method: "DELETE",
-    //     path: "/cities/:id",
-    //     description: "Delete a city by id",
-    //   },
-    //   {
-    //     method: "DELETE",
-    //     path: "/cities",
-    //     description: "Delete all cities",
-    //   },
-    //   {
-    //     method: "PATCH",
-    //     path: "/cities/:id",
-    //     description: "Update a city by id",
-    //   },
-    //   {
-    //     method: "PUT",
-    //     path: "/cities:id",
-    //     description: "Update a city by id, or create city",
-    //   },
-    // ],
-  });
-});
+commonRoute.openapi(
+  {
+    tags: ["Info"],
+    method: "get",
+    path: "/",
+    summary: "Info API",
+    responses: {
+      200: {
+        description: "Root info response",
+        content: {
+          "application/json": { schema: InfoResponseSchema },
+        },
+      },
+    },
+  },
+  async (c) => {
+    return c.json({
+      message: "Urbanesia API",
+      description: "Welcome to Urbanesia API",
+      version: "1.0.0",
+    });
+  }
+);

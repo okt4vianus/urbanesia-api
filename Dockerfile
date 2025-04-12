@@ -10,6 +10,11 @@ COPY . .
 
 # Install app dependencies
 RUN bun install
+RUN bun prisma migrate deploy
+RUN bun prisma generate --no-hints
+# or RUN bun build
+
+# Expose the application port
 
 # Run the application
 CMD ["bun", "start"]

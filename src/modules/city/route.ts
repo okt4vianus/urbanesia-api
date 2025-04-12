@@ -1,6 +1,5 @@
-import { Hono } from "hono";
 import { prisma } from "../../lib/prisma";
-import { zValidator } from "@hono/zod-validator";
+import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import {
   CitiesResponseSchema,
   CityResponseSchema,
@@ -9,18 +8,20 @@ import {
   ParamCitySlugSchemaWith,
   UpdatePatchCitySchema,
   UpdatePutCitySchema,
-  ErrorResponseSchema,
 } from "./schema";
 import { createNewSlug } from "../../lib/slug";
 import { Prisma } from "@prisma/client";
-import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { ErrorResponseSchema, SuccessResponseSchema } from "../common/schema";
 
-// export const citiesRoute = new Hono();
 export const citiesRoute = new OpenAPIHono();
+
+const tags = ["Cities"];
 
 // ✅ GET /cities
 citiesRoute.openapi(
   createRoute({
+    tags,
+    summary: "Get all cities",
     method: "get",
     path: "/",
     responses: {
@@ -29,7 +30,6 @@ citiesRoute.openapi(
         description: "Get all cities",
       },
     },
-    tags: ["Cities"],
   }),
   async (c) => {
     const cities = await prisma.city.findMany({
@@ -41,147 +41,257 @@ citiesRoute.openapi(
 );
 
 // ✅ GET /cities/:slug
-// citiesRoute.openapi(
-//   createRoute({
-//     method: "get",
-//     path: "/:slug",
-//     request: {
-//       params: ParamCitySlugSchemaWith,
-//     },
-//     responses: {
-//       200: {
-//         content: { "application/json": { schema: CityResponseSchema } },
-//         description: "Get city by slug",
-//       },
-//       404: {
-//         content: { "application/json": { schema: CityResponseSchema } },
-//         description: "City not found",
-//       },
-//     },
-//     tags: ["Cities"],
-//   }),
-//   // zValidator("param", ParamCitySlugSchemaWith),
-//   async (c) => {
-//     const { slug } = c.req.valid("param");
-//     const city = await prisma.city.findUnique({ where: { slug } });
+citiesRoute.openapi(
+  createRoute({
+    tags,
+    summary: "Get city by slug",
+    method: "get",
+    path: "/:slug",
+    request: {
+      params: ParamCitySlugSchemaWith,
+    },
+    responses: {
+      200: {
+        content: { "application/json": { schema: CityResponseSchema } },
+        description: "Get city by slug",
+      },
+      404: {
+        // content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "City not found",
+      },
+    },
+  }),
+  async (c) => {
+    const { slug } = c.req.valid("param");
+    const city = await prisma.city.findUnique({ where: { slug } });
 
-//     if (!city)
-//       return c.json({ message: `City by slug '${slug}' not found` }, 404);
+    if (!city)
+      return c.json({ message: `City by slug '${slug}' not found` }, 404);
 
-//     return c.json(city);
-//   }
-// );
+    return c.json(city);
+  }
+);
 
 // // ✅ POST /cities
-// citiesRoute.post("/", zValidator("json", CreateCitySchema), async (c) => {
-//   try {
-//     const body = c.req.valid("json");
+citiesRoute.openapi(
+  createRoute({
+    tags,
+    summary: "Create a new city",
+    method: "post",
+    path: "/",
+    request: {
+      body: { content: { "application/json": { schema: CreateCitySchema } } },
+    },
+    responses: {
+      201: {
+        content: { "application/json": { schema: CityResponseSchema } },
+        description: "City created successfully",
+      },
+      500: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Internal server error",
+      },
+    },
+  }),
+  async (c) => {
+    try {
+      const body = c.req.valid("json");
 
-//     const city = await prisma.city.create({
-//       data: {
-//         ...body,
-//         slug: body.slug ?? createNewSlug(body.name),
-//       },
-//     });
+      const city = await prisma.city.create({
+        data: {
+          ...body,
+          slug: body.slug ?? createNewSlug(body.name),
+        },
+      });
 
-//     return c.json(city, 201);
-//   } catch (error) {
-//     return c.json({ error: "Failed to create new city", details: error }, 500);
-//   }
-// });
+      return c.json(city, 201);
+    } catch (error) {
+      return c.json(
+        { error: "Failed to create new city", details: error },
+        500
+      );
+    }
+  }
+);
 
 // ✅ DELETE /cities
-// citiesRoute.delete("/", async (c) => {
-//   try {
-//     await prisma.city.deleteMany();
-//     return c.json({ message: "All cities have been deleted" }, 200);
-//   } catch (error) {
-//     return c.json({ error: "Failed to delete cities", details: error }, 500);
-//   }
-// });
+citiesRoute.openapi(
+  createRoute({
+    tags,
+    summary: "Delete all cities",
+    method: "delete",
+    path: "/",
+    responses: {
+      200: {
+        content: { "application/json": { schema: SuccessResponseSchema } },
+        description: "Delete all cities",
+      },
+      500: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Internal server error",
+      },
+    },
+  }),
+  async (c) => {
+    try {
+      await prisma.city.deleteMany();
+      return c.json({ message: "All cities have been deleted" }, 200);
+    } catch (error) {
+      return c.json({ error: "Failed to delete cities", details: error }, 500);
+    }
+  }
+);
 
 // // ✅ DELETE /cities/:id
-// citiesRoute.delete(
-//   "/:id",
-//   zValidator("param", ParamCityIdSchema),
-//   async (c) => {
-//     const { id } = c.req.valid("param");
+citiesRoute.openapi(
+  createRoute({
+    tags,
+    summary: "Delete a city by ID",
+    method: "delete",
+    path: "/:id",
+    request: { params: ParamCityIdSchema },
+    responses: {
+      200: {
+        content: { "application/json": { schema: SuccessResponseSchema } },
+        description: "City deleted successfully",
+      },
+      404: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "City not found",
+      },
+      500: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Internal server error",
+      },
+    },
+  }),
+  async (c) => {
+    try {
+      const { id } = c.req.valid("param");
+      const deleteCity = await prisma.city.delete({ where: { id } });
 
-//     try {
-//       const deleteCity = await prisma.city.delete({ where: { id } });
-
-//       return c.json({
-//         message: `City with ID ${id} has been deleted`,
-//         data: deleteCity,
-//       });
-//     } catch (error) {
-//       return c.json({ error: "Failed to delete city", details: error }, 500);
-//     }
-//   }
-// );
+      return c.json({
+        message: `City with ID ${id} has been deleted`,
+        data: deleteCity,
+      });
+    } catch (error) {
+      return c.json({ error: "Failed to delete city", details: error }, 500);
+    }
+  }
+);
 
 // // ✅ PATCH /cities/:id
-// citiesRoute.patch(
-//   "/:id",
-//   zValidator("param", ParamCityIdSchema),
-//   zValidator("json", UpdatePatchCitySchema),
-//   async (c) => {
-//     try {
-//       const { id } = c.req.valid("param");
-//       const body = c.req.valid("json");
-//       const updatedCity = await prisma.city.update({
-//         where: { id },
-//         data: {
-//           ...body,
-//           slug: body.slug ?? createNewSlug(body.name ?? ""),
-//         },
-//       });
+citiesRoute.openapi(
+  createRoute({
+    tags,
+    summary: "Update a city by ID",
+    method: "patch",
+    path: "/:id",
+    request: {
+      params: ParamCityIdSchema,
+      body: {
+        content: { "application/json": { schema: UpdatePatchCitySchema } },
+      },
+    },
+    responses: {
+      200: {
+        content: { "application/json": { schema: CityResponseSchema } },
+        description: "City updated successfully",
+      },
+      404: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "City not found",
+      },
+      500: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Internal server error",
+      },
+    },
+  }),
+  async (c) => {
+    try {
+      const { id } = c.req.valid("param");
+      const body = c.req.valid("json");
+      const updatedCity = await prisma.city.update({
+        where: { id },
+        data: {
+          ...body,
+          slug: body.slug ?? createNewSlug(body.name ?? ""),
+        },
+      });
 
-//       return c.json(updatedCity, 200);
-//     } catch (error) {
-//       return c.json({ message: "Failed to update city", error }, 500);
-//     }
-//   }
-// );
+      return c.json(updatedCity, 200);
+    } catch (error) {
+      return c.json({ message: "Failed to update city", error }, 500);
+    }
+  }
+);
 
 // // ✅  PUT /cities/:id
-// citiesRoute.put(
-//   "/:id",
-//   zValidator("param", ParamCityIdSchema),
-//   zValidator("json", UpdatePutCitySchema),
-//   async (c) => {
-//     try {
-//       const { id } = c.req.valid("param");
-//       const body = c.req.valid("json");
+citiesRoute.openapi(
+  createRoute({
+    tags,
+    summary: "Update or create a city by ID",
+    method: "put",
+    path: "/:id",
+    request: {
+      params: ParamCityIdSchema,
+      body: {
+        content: { "application/json": { schema: UpdatePutCitySchema } },
+      },
+    },
+    responses: {
+      200: {
+        content: { "application/json": { schema: CityResponseSchema } },
+        description: "City updated successfully",
+      },
+      201: {
+        content: { "application/json": { schema: CityResponseSchema } },
+        description: "City created successfully",
+      },
+      400: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Bad request - duplicate value",
+      },
+      500: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Internal server error",
+      },
+    },
+  }),
+  async (c) => {
+    try {
+      const { id } = c.req.valid("param");
+      const body = c.req.valid("json");
 
-//       const result = await prisma.city.upsert({
-//         where: { id },
-//         update: {
-//           ...body,
-//           slug: body.slug ?? createNewSlug(body.name),
-//         },
-//         create: {
-//           name: body.name,
-//           slug: createNewSlug(body.name),
-//           areaSize: body.areaSize,
-//           description: body.description || null,
-//         },
-//       });
+      const result = await prisma.city.upsert({
+        where: { id },
+        update: {
+          ...body,
+          slug: body.slug ?? createNewSlug(body.name),
+        },
+        create: {
+          name: body.name,
+          slug: createNewSlug(body.name),
+          areaSize: body.areaSize,
+          description: body.description || null,
+        },
+      });
 
-//       return c.json(result, 200);
-//     } catch (error) {
-//       if (
-//         error instanceof Prisma.PrismaClientKnownRequestError &&
-//         error.code === "P2002"
-//       ) {
-//         return c.json(
-//           {
-//             message: `Put failed: Duplicate value on unique field(s):`,
-//           },
-//           400
-//         );
-//       }
-//       return c.json({ message: "Put failed", error }, 500);
-//     }
-//   }
-// );
+      return c.json(result, 200);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        return c.json(
+          {
+            message: `Put failed: Duplicate value on unique field(s):`,
+          },
+          400
+        );
+      }
+      return c.json({ message: "Put failed", error }, 500);
+    }
+  }
+);
