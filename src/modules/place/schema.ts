@@ -11,3 +11,5 @@ export const PlaceResponseSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+
+export const PlacesResponseSchema = z.array(PlaceResponseSchema);

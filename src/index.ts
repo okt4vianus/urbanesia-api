@@ -19,6 +19,7 @@ app.doc("/openapi.json", {
   info: {
     version: "1.0.0",
     title: "Urbanesia API",
+    description: "API documentation for Urbanesia",
   },
 });
 

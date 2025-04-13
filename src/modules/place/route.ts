@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { prisma } from "../../lib/prisma";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { PlaceResponseSchema } from "./schema";
+import { PlaceResponseSchema, PlacesResponseSchema } from "./schema";
 import { create } from "domain";
 
 // export const placesRoute = new Hono();
@@ -17,7 +17,7 @@ placesRoute.openapi(
     path: "/",
     responses: {
       200: {
-        // content: { "application/json": { schema: PlaceResponseSchema } },
+        content: { "application/json": { schema: PlacesResponseSchema } },
         description: "Get all places",
       },
     },
