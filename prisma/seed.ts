@@ -1,10 +1,6 @@
 import { citiesSeed } from "../src/modules/city/data";
 import { placesSeed } from "../src/modules/place/data";
 
-// import { citiesSeed } from "../src/data/cities_temp";
-// import { placesSeed } from "../src/data/places_temp";
-// import { prisma } from "../src/lib/prisma";
-
 import { PrismaClient } from "@prisma/client";
 export const prisma = new PrismaClient();
 
@@ -30,8 +26,8 @@ async function main() {
         city: { connect: { slug: placeSeed.citySlug } },
       },
       create: {
-        slug: placeSeed.slug,
         name: placeSeed.name,
+        slug: placeSeed.slug,
         latitude: placeSeed.latitude,
         longitude: placeSeed.longitude,
         description: placeSeed.description,

@@ -2,21 +2,23 @@
 
 Cities information API
 
+Live at: <https://api-urbanesia.oktavianusrtasak.com>
+
 ## REST API Specifications
 
 ### User
 
 Cities:
 
-| Endpoints     | HTTP Method        | Description                  | Status |
-| ------------- | ------------------ | ---------------------------- | ------ |
-| /cities       | GET                | Get all cities               | Done   |
-| /cities/:slug | GET                | Get city by slug             | Done   |
-| /cities       | POST               | Create city                  | Done   |
-| /cities/:id   | DELETE             | Delete city by id            | Done   |
-| /cities       | DELETE             | Delete all cities            | Done   |
-| /cities/:id   | PATCH              | Update city by id            | Done   |
-| /cities/:id   | PUT (PATCH & POST) | Update city by id, or create | Done   |
+| Endpoints           | HTTP Method        | Description                  | Status |
+| ------------------- | ------------------ | ---------------------------- | ------ |
+| /cities             | GET                | Get all cities               | Done   |
+| /cities/:identifier | GET                | Get city by identifier       | Done   |
+| /cities             | POST               | Create city                  | Done   |
+| /cities/:id         | DELETE             | Delete city by id            | Done   |
+| /cities             | DELETE             | Delete all cities            | Done   |
+| /cities/:id         | PATCH              | Update city by id            | Done   |
+| /cities/:id         | PUT (PATCH & POST) | Update city by id, or create | Done   |
 
 Other features:
 
@@ -26,9 +28,10 @@ Other features:
 
 ### Admin
 
-| Endpoints         | HTTP Method | Description    | Status |
-| ----------------- | ----------- | -------------- | ------ |
-| /admin/cities/:id | GET         | Get city by id | Done   |
+| Endpoints                | HTTP Method | Description      | Status |
+| ------------------------ | ----------- | ---------------- | ------ |
+| /admin/cities/id/:id     | GET         | Get city by id   | Done   |
+| /admin/cities/slug/:slug | GET         | Get city by slug | Done   |
 
 ## Development
 

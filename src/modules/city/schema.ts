@@ -35,6 +35,10 @@ export const ParamCitySlugSchemaWith = z.object({
   slug: z.string().min(3, "City slug is required"),
 });
 
+export const ParamCityIdentifierSchema = z.object({
+  identifier: z.string().min(3, "Identifier is required"), //City ID or slug"
+});
+
 export const QuerySearchCitySchema = z.object({
   q: z.string().min(3, "Search query is required"),
 });

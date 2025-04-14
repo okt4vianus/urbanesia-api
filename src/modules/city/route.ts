@@ -1,17 +1,17 @@
-import { prisma } from "../../lib/prisma";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { Prisma } from "@prisma/client";
+import { prisma } from "../../lib/prisma";
+import { createNewSlug } from "../../lib/slug";
+import { ErrorResponseSchema, SuccessResponseSchema } from "../common/schema";
 import {
   CitiesResponseSchema,
   CityResponseSchema,
   CreateCitySchema,
+  ParamCityIdentifierSchema,
   ParamCityIdSchema,
-  ParamCitySlugSchemaWith,
   UpdatePatchCitySchema,
   UpdatePutCitySchema,
 } from "./schema";
-import { createNewSlug } from "../../lib/slug";
-import { Prisma } from "@prisma/client";
-import { ErrorResponseSchema, SuccessResponseSchema } from "../common/schema";
 
 export const citiesRoute = new OpenAPIHono();
 
@@ -40,33 +40,49 @@ citiesRoute.openapi(
   }
 );
 
-// ✅ GET /cities/:slug
+// ✅ GET /cities/:identifier
 citiesRoute.openapi(
   createRoute({
     tags,
-    summary: "Get city by slug",
+    summary: "Get city by identifier (ID or slug)",
     method: "get",
-    path: "/:slug",
+    path: "/:identifier",
     request: {
-      params: ParamCitySlugSchemaWith,
+      params: ParamCityIdentifierSchema,
     },
     responses: {
       200: {
         content: { "application/json": { schema: CityResponseSchema } },
-        description: "Get city by slug",
+        description: "Get city by identifier",
       },
       404: {
         // content: { "application/json": { schema: ErrorResponseSchema } },
         description: "City not found",
       },
+      500: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Internal server error",
+      },
     },
   }),
   async (c) => {
-    const { slug } = c.req.valid("param");
-    const city = await prisma.city.findUnique({ where: { slug } });
+    const { identifier } = c.req.valid("param");
 
-    if (!city)
-      return c.json({ message: `City by slug '${slug}' not found` }, 404);
+    const city = await prisma.city.findFirst({
+      where: {
+        OR: [{ id: identifier }, { slug: identifier }],
+      },
+    });
+
+    if (!city) {
+      return c.json(
+        {
+          error: "NotFound",
+          message: `City with identifier '${identifier}' not found`,
+        },
+        404
+      );
+    }
 
     return c.json(city);
   }
