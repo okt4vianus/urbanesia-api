@@ -10,21 +10,32 @@ Live at: <https://api-urbanesia.oktavianusrtasak.com>
 
 Cities:
 
-| Endpoints           | HTTP Method        | Description                  | Status |
-| ------------------- | ------------------ | ---------------------------- | ------ |
-| /cities             | GET                | Get all cities               | Done   |
-| /cities/:identifier | GET                | Get city by identifier       | Done   |
-| /cities             | POST               | Create city                  | Done   |
-| /cities/:id         | DELETE             | Delete city by id            | Done   |
-| /cities             | DELETE             | Delete all cities            | Done   |
-| /cities/:id         | PATCH              | Update city by id            | Done   |
-| /cities/:id         | PUT (PATCH & POST) | Update city by id, or create | Done   |
+| Endpoints           | HTTP Method        | Description                         | Status |
+| ------------------- | ------------------ | ----------------------------------- | ------ |
+| /cities             | GET                | Get all cities                      | Done   |
+| /cities/:identifier | GET                | Get city by identifier (id or slug) | Done   |
+| /cities             | POST               | Create city                         | Done   |
+| /cities/:id         | DELETE             | Delete city by id                   | Done   |
+| /cities             | DELETE             | Delete all cities                   | Done   |
+| /cities/:id         | PATCH              | Update city by id                   | Done   |
+| /cities/:id         | PUT (PATCH & POST) | Update city by id, or create        | Done   |
+
+Places:
+
+| Endpoints           | HTTP Method | Description                          | Status |
+| ------------------- | ----------- | ------------------------------------ | ------ |
+| /places             | GET         | Get all places                       | Done   |
+| /places/:identifier | GET         | Get place by identifier (id or slug) | Done   |
+| /places             | POST        | Create place                         | Done   |
+| /places/:id         | DELETE      | Delete place by id                   | Done   |
+| /places             | DELETE      | Delete all places                    | Done   |
+| /places/:id         | PATCH       | Update place by id                   | Done   |
 
 Other features:
 
-| Endpoints        | HTTP Method | Description          | Status |
-| ---------------- | ----------- | -------------------- | ------ |
-| /search?q=string | GET         | Search city by query | Done   |
+| Endpoints        | HTTP Method | Description                   | Status |
+| ---------------- | ----------- | ----------------------------- | ------ |
+| /search?q=string | GET         | Search city or place by query | Done   |
 
 ### Admin
 

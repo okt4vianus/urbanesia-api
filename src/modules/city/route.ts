@@ -88,7 +88,7 @@ citiesRoute.openapi(
   }
 );
 
-// // ✅ POST /cities
+// ✅ POST /cities
 citiesRoute.openapi(
   createRoute({
     tags,
@@ -158,7 +158,7 @@ citiesRoute.openapi(
   }
 );
 
-// // ✅ DELETE /cities/:id
+// ✅ DELETE /cities/:id
 citiesRoute.openapi(
   createRoute({
     tags,
@@ -196,7 +196,7 @@ citiesRoute.openapi(
   }
 );
 
-// // ✅ PATCH /cities/:id
+// ✅ PATCH /cities/:id
 citiesRoute.openapi(
   createRoute({
     tags,
