@@ -32,10 +32,10 @@ placesRoute.openapi(
   async (c) => {
     const places = await prisma.place.findMany({
       relationLoadStrategy: "join",
+      orderBy: [{ id: "asc" }, { createdAt: "asc" }],
       include: {
         city: true,
       },
-      orderBy: [{ id: "asc" }, { createdAt: "asc" }],
     });
 
     return c.json(places);
@@ -65,21 +65,22 @@ placesRoute.openapi(
   }),
   async (c) => {
     try {
-      const body = c.req.valid("json");
+      const { citySlug, ...body } = c.req.valid("json");
 
       const place = await prisma.place.create({
         data: {
           ...body,
           slug: body.slug ?? createNewSlug(body.name),
+          city: citySlug ? { connect: { slug: citySlug } } : undefined,
+        },
+        include: {
+          city: true,
         },
       });
 
       return c.json(place, 201);
     } catch (error) {
-      return c.json(
-        { error: "Failed to create new place", details: error },
-        500
-      );
+      return c.json({ message: "Failed to create new place", error }, 500);
     }
   }
 );
@@ -115,12 +116,14 @@ placesRoute.openapi(
   async (c) => {
     try {
       const { id } = c.req.valid("param");
-      const body = c.req.valid("json");
+      const { citySlug, ...body } = c.req.valid("json");
+
       const updatedPlace = await prisma.place.update({
         where: { id },
         data: {
           ...body,
           slug: body.slug ?? createNewSlug(body.name ?? ""),
+          city: citySlug ? { connect: { slug: citySlug } } : undefined,
         },
       });
 

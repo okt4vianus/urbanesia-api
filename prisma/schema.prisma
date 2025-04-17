@@ -11,8 +11,8 @@ datasource db {
 model City {
   id String @id @default(ulid())
 
-  slug        String  @unique //kota-manado
-  name        String  @unique //Kota Manado
+  slug        String  @unique // kota-manado
+  name        String  @unique // Kota Manado
   areaSize    Float // in km2 = 162.29
   description String? @db.Text // ? optional field
 
@@ -32,7 +32,7 @@ model Place {
   description String? @db.Text
 
   city   City?   @relation(fields: [cityId], references: [id], onDelete: SetNull)
-  cityId String?
+  cityId String? // Foreign Key ID to City
 
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
