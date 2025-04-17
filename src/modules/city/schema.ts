@@ -46,8 +46,8 @@ export const QuerySearchCitySchema = z.object({
 // Schema for response
 export const CityResponseSchema = z.object({
   id: z.string(),
-  name: z.string(),
   slug: z.string(),
+  name: z.string(),
   areaSize: z.number(),
   description: z.string().nullable(),
   createdAt: z.date(),

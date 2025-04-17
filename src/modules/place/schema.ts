@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CityResponseSchema } from "../city/schema";
 
 // Schema for creating a new place
 export const CreatePlaceSchema = z.object({
@@ -10,10 +11,7 @@ export const CreatePlaceSchema = z.object({
     .min(-180)
     .max(180, "Longitude must be between -180 and 180"),
   description: z.string().optional(),
-  // cityId: z.string().optional(),
-  // city: z.string().optional(),
-  // areaSize: z.number().positive("Area size must be a positive number"),
-  // description: z.string().optional(),
+  citySlug: z.string().optional(),
 });
 
 // Schema Update Patch Place (all field optional)
@@ -52,6 +50,7 @@ export const PlaceResponseSchema = z.object({
   description: z.string().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  city: CityResponseSchema.optional().nullable(),
 });
 
 export const PlacesResponseSchema = z.array(PlaceResponseSchema);
