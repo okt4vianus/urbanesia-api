@@ -71,7 +71,7 @@ placesRoute.openapi(
         data: {
           ...body,
           slug: body.slug ?? createNewSlug(body.name),
-          city: { connect: { slug: citySlug } },
+          city: citySlug ? { connect: { slug: citySlug } } : undefined,
         },
         include: {
           city: true,
@@ -116,12 +116,14 @@ placesRoute.openapi(
   async (c) => {
     try {
       const { id } = c.req.valid("param");
-      const body = c.req.valid("json");
+      const { citySlug, ...body } = c.req.valid("json");
+
       const updatedPlace = await prisma.place.update({
         where: { id },
         data: {
           ...body,
           slug: body.slug ?? createNewSlug(body.name ?? ""),
+          city: citySlug ? { connect: { slug: citySlug } } : undefined,
         },
       });
 

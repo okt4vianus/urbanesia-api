@@ -1,15 +1,21 @@
 import { z } from "zod";
 import { CityResponseSchema } from "../city/schema";
 
+const LatitudeSchema = z
+  .number()
+  .min(-90)
+  .max(90, "Latitude must be between -90 and 90");
+const LongitudeSchema = z
+  .number()
+  .min(-180)
+  .max(180, "Longitude must be between -180 and 180");
+
 // Schema for creating a new place
 export const CreatePlaceSchema = z.object({
   name: z.string().min(3, "Name is required"),
   slug: z.string().min(3).optional(),
-  latitude: z.number().min(-90).max(90, "Latitude must be between -90 and 90"),
-  longitude: z
-    .number()
-    .min(-180)
-    .max(180, "Longitude must be between -180 and 180"),
+  latitude: LatitudeSchema,
+  longitude: LongitudeSchema,
   description: z.string().optional(),
   citySlug: z.string().optional(),
 });
@@ -18,18 +24,10 @@ export const CreatePlaceSchema = z.object({
 export const UpdatePatchPlaceSchema = z.object({
   name: z.string().min(3).optional(),
   slug: z.string().min(3).optional(),
-  latitude: z
-    .number()
-    .min(-90)
-    .max(90, "Latitude must be between -90 and 90")
-    .optional(),
-  longitude: z
-    .number()
-    .min(-180)
-    .max(180, "Longitude must be between -180 and 180")
-    .optional(),
+  latitude: LatitudeSchema.optional(),
+  longitude: LongitudeSchema.optional(),
   description: z.string().optional(),
-  cityId: z.string().optional(),
+  citySlug: z.string().optional(),
 });
 
 // Schema for parameter
