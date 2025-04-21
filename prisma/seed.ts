@@ -16,24 +16,39 @@ async function main() {
   }
 
   for (const placeSeed of placesSeed) {
+    const { citySlug, ...placeData } = placeSeed;
+
     const place = await prisma.place.upsert({
-      where: { slug: placeSeed.slug },
+      where: { slug: placeData.slug },
       update: {
-        name: placeSeed.name,
-        latitude: placeSeed.latitude,
-        longitude: placeSeed.longitude,
-        description: placeSeed.description,
-        city: { connect: { slug: placeSeed.citySlug } },
+        ...placeData,
+        city: { connect: { slug: citySlug } },
       },
       create: {
-        name: placeSeed.name,
-        slug: placeSeed.slug,
-        latitude: placeSeed.latitude,
-        longitude: placeSeed.longitude,
-        description: placeSeed.description,
-        city: { connect: { slug: placeSeed.citySlug } },
+        ...placeData,
+        city: { connect: { slug: citySlug } },
       },
     });
+
+    // alternative
+    // const place = await prisma.place.upsert({
+    //   where: { slug: placeSeed.slug },
+    //   update: {
+    //     name: placeSeed.name,
+    //     latitude: placeSeed.latitude,
+    //     longitude: placeSeed.longitude,
+    //     description: placeSeed.description,
+    //     city: { connect: { slug: placeSeed.citySlug } },
+    //   },
+    //   create: {
+    //     name: placeSeed.name,
+    //     slug: placeSeed.slug,
+    //     latitude: placeSeed.latitude,
+    //     longitude: placeSeed.longitude,
+    //     description: placeSeed.description,
+    //     city: { connect: { slug: placeSeed.citySlug } },
+    //   },
+    // });
 
     console.info(`🏘️ Place: ${place.name}`);
   }
