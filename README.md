@@ -2,7 +2,7 @@
 
 Cities information API
 
-Live at: <https://api-urbanesia.oktavianusrtasak.com>
+Live at: <https://urbanesia-api.oktavianusrtasak.com>
 
 ## REST API Specifications
 
