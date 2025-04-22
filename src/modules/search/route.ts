@@ -58,6 +58,7 @@ searchRoute.openapi(
           { description: { contains: q, mode: "insensitive" } },
         ],
       },
+      include: { city: true },
     });
 
     return c.json({ cities, places }, 200);

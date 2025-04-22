@@ -32,7 +32,10 @@ adminCitiesRoute.openapi(
   async (c) => {
     const { id } = c.req.valid("param");
 
-    const city = await prisma.city.findUnique({ where: { id } });
+    const city = await prisma.city.findUnique({
+      where: { id },
+      include: { place: true },
+    });
 
     if (!city) return c.json({ message: `City by id ${id} not found` }, 404);
 
@@ -63,7 +66,10 @@ adminCitiesRoute.openapi(
   }),
   async (c) => {
     const { slug } = c.req.valid("param");
-    const city = await prisma.city.findUnique({ where: { slug } });
+    const city = await prisma.city.findUnique({
+      where: { slug },
+      include: { place: true },
+    });
 
     if (!city)
       return c.json({ message: `City by slug '${slug}' not found` }, 404);

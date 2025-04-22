@@ -72,6 +72,7 @@ citiesRoute.openapi(
       where: {
         OR: [{ id: identifier }, { slug: identifier }],
       },
+      include: { place: true },
     });
 
     if (!city) {

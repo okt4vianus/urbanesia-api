@@ -3,6 +3,7 @@ import { prisma } from "../../lib/prisma";
 
 import {
   CreatePlaceSchema,
+  ParamPlaceIdentifierSchema,
   ParamPlaceIdSchema,
   PlaceResponseSchema,
   PlacesResponseSchema,
@@ -40,6 +41,54 @@ placesRoute.openapi(
     });
 
     return c.json(places);
+  }
+);
+
+// ✅ GET /places/:identifier
+placesRoute.openapi(
+  createRoute({
+    tags,
+    summary: "Get place by identifier (ID or slug)",
+    method: "get",
+    path: "/:identifier",
+    request: {
+      params: ParamPlaceIdentifierSchema,
+    },
+    responses: {
+      200: {
+        content: { "application/json": { schema: PlaceResponseSchema } },
+        description: "Get place by identifier",
+      },
+      404: {
+        description: "Place not found",
+      },
+      500: {
+        content: { "application/json": { schema: ErrorResponseSchema } },
+        description: "Internal server error",
+      },
+    },
+  }),
+  async (c) => {
+    const { identifier } = c.req.valid("param");
+
+    const place = await prisma.place.findFirst({
+      where: {
+        OR: [{ id: identifier }, { slug: identifier }],
+      },
+      include: { city: true },
+    });
+
+    if (!place) {
+      return c.json(
+        {
+          error: "NotFound",
+          message: `Place with identifier '${identifier}' not found`,
+        },
+        404
+      );
+    }
+
+    return c.json(place);
   }
 );
 
